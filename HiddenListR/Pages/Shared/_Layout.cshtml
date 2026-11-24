@@ -1,0 +1,55 @@
+@using HiddenListR.Domain.Entities
+@using HiddenListR.Services
+@inject RequestUserContext UserContext
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - HiddenListR</title>
+    <link rel="stylesheet" href="https://unpkg.com/@@knadh/oat/oat.min.css">
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
+    <script src="https://unpkg.com/@@knadh/oat/oat.min.js" defer></script>
+</head>
+<body>
+    <header>
+        <nav class="main-nav">
+            <div class="nav-left">
+                <a asp-page="/Events/Index">@(UserContext.User.IsAdmin() ? "Events" : "My Events")</a>
+                @if (UserContext.User.IsAdmin())
+                {
+                    <a asp-page="/Users/Index">Users</a>
+                }
+                <a asp-page="/About">About</a>
+            </div>
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <div class="nav-right">
+                    @if (UserContext.User is not null)
+                    {
+                        <span>@($"{UserContext.User.FirstName} {UserContext.User.LastName}".Trim())</span>
+                    }
+                    <form method="post" action="/api/auth/logout">
+                        <button type="submit">Logout</button>
+                    </form>
+                </div>
+            }
+        </nav>
+    </header>
+    <div class="container">
+        <main role="main">
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer>
+        <div class="container">
+            &copy; 2026 - HiddenListR - <a asp-page="/About">About</a>
+        </div>
+    </footer>
+
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

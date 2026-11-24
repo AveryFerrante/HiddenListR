@@ -1,0 +1,64 @@
+@page
+@model HiddenListR.Pages.Users.IndexModel
+@using HiddenListR.Domain.Entities
+@{
+    ViewData["Title"] = "Users";
+}
+
+<h1>Users</h1>
+
+<h2>Create User</h2>
+<form method="post">
+    <div>
+        <label asp-for="Input.FirstName"></label>
+        <input asp-for="Input.FirstName" />
+        <span asp-validation-for="Input.FirstName"></span>
+    </div>
+    <div>
+        <label asp-for="Input.LastName"></label>
+        <input asp-for="Input.LastName" />
+        <span asp-validation-for="Input.LastName"></span>
+    </div>
+    <div>
+        <label asp-for="Input.PhoneNumber"></label>
+        <input asp-for="Input.PhoneNumber" />
+        <span asp-validation-for="Input.PhoneNumber"></span>
+    </div>
+    <div>
+        <label asp-for="Input.Role"></label>
+        <select asp-for="Input.Role" asp-items="Html.GetEnumSelectList<UserRole>()"></select>
+        <span asp-validation-for="Input.Role"></span>
+    </div>
+    <button type="submit">Create User</button>
+</form>
+
+<h2>All Users</h2>
+@if (Model.Users.Count == 0)
+{
+    <p>No users found.</p>
+}
+else
+{
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Role</th>
+                <th>Events</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var u in Model.Users)
+            {
+                var events = Model.UserEvents.GetValueOrDefault(u.Id) ?? [];
+                <tr>
+                    <td>@u.FirstName @u.LastName</td>
+                    <td>@u.PhoneNumber</td>
+                    <td>@u.Role</td>
+                    <td>@(events.Count == 0 ? "-" : string.Join(", ", events))</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

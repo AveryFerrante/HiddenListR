@@ -1,0 +1,64 @@
+HiddenListR.Domain - EF Core / SQLite Instructions
+
+## Prerequisites
+- .NET SDK installed (project targets net10.0).
+- EF Core CLI tool installed:
+  dotnet tool install --global dotnet-ef
+  (or update: dotnet tool update --global dotnet-ef)
+- Run commands from the repository root unless noted.
+
+## Generate a migration
+Creates migration code from entity/model changes in HiddenListR.Domain.
+
+  dotnet ef migrations add <MigrationName> --project HiddenListR.Domain --startup-project HiddenListR
+
+Example:
+  dotnet ef migrations add InitialCreate --project HiddenListR.Domain --startup-project HiddenListR
+
+## Apply migrations to the database
+Applies pending migrations to the configured SQLite database.
+
+  dotnet ef database update --project HiddenListR.Domain --startup-project HiddenListR
+
+Apply a specific migration:
+  dotnet ef database update <MigrationName> --project HiddenListR.Domain --startup-project HiddenListR
+
+## Connection string / DB location
+- Local default (from appsettings.json): Data Source=hiddenlistr.db
+  This creates/uses hiddenlistr.db in the app working directory when run locally.
+- Docker Compose sets: ConnectionStrings__DefaultConnection=Data Source=/app/data/hiddenlistr.db
+  The DB file is persisted in the `hiddenlistr-data` Docker volume mounted at /app/data.
+
+## Connect/query SQLite from command line
+
+### Option A: sqlite3 CLI on your machine
+If sqlite3 is installed, open the local DB file:
+  sqlite3 HiddenListR/hiddenlistr.db
+
+Useful commands inside sqlite3:
+  .tables                 -- list tables
+  .schema Users           -- show table schema
+  .headers on
+  .mode column
+  SELECT * FROM Users;
+  SELECT * FROM Events;
+  SELECT * FROM EventMembers;
+  .quit
+
+### Option B: Query the DB inside the running Docker container
+If sqlite3 is not installed on your host, exec into the container and use Python (usually available in base images? not guaranteed) or copy the DB out. A reliable approach is to copy the DB from the volume/container to host, then query it.
+
+Find container name:
+  docker ps
+
+Copy DB file from container to current directory:
+  docker cp <container_name>:/app/data/hiddenlistr.db ./hiddenlistr.db
+
+Then query locally with sqlite3, or use a GUI like DB Browser for SQLite.
+
+### Option C: DB Browser for SQLite (GUI)
+Install "DB Browser for SQLite" and open the .db file directly. This is often easiest for inspecting tables/data.
+
+## Notes
+- SQLite DB files may also create `-wal` and `-shm` files when WAL mode/journaling is active; keep them together when copying.
+- Because surprise integrity is a core product rule, be careful when querying purchase-related data in future: owner-facing APIs/UI must never expose purchase status for the owner's own items.

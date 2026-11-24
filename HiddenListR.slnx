@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="HiddenListR/HiddenListR.csproj" />
+  <Project Path="HiddenListR.Domain/HiddenListR.Domain.csproj" />
+</Solution>

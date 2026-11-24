@@ -1,0 +1,59 @@
+@page "/Login"
+@model HiddenListR.Pages.Login.IndexModel
+@{
+    Layout = null;
+    ViewData["Title"] = "Login";
+}
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - HiddenListR</title>
+    <link rel="stylesheet" href="https://unpkg.com/@@knadh/oat/oat.min.css">
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <script src="https://unpkg.com/@@knadh/oat/oat.min.js" defer></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Login</h1>
+        <p>Enter your phone number.</p>
+
+        <form id="login-form">
+            <div>
+                <label for="phoneNumber">Phone Number</label>
+                <input id="phoneNumber" type="text" autocomplete="tel" />
+            </div>
+            <button type="submit">Login</button>
+        </form>
+
+        <p id="login-error" class="text-danger"></p>
+    </div>
+
+    <script>
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            document.getElementById('login-error').textContent = '';
+
+            const phoneNumber = document.getElementById('phoneNumber').value.trim();
+            if (!phoneNumber) {
+                document.getElementById('login-error').textContent = 'Phone number is required.';
+                return;
+            }
+
+            const res = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ phoneNumber })
+            });
+
+            if (!res.ok) {
+                document.getElementById('login-error').textContent = 'Login failed. Check phone number.';
+                return;
+            }
+
+            window.location.href = '/';
+        });
+    </script>
+</body>
+</html>

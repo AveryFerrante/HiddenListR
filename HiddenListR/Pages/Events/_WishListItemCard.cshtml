@@ -1,0 +1,86 @@
+@model DetailsModel.WishListItemCardModel
+
+@{
+    var showActions = Model.CanEdit
+                      || (Model.CanClaim && Model.Claim == ItemClaimState.None)
+                      || (Model.CanUnclaim && Model.Claim == ItemClaimState.ClaimedByMe);
+}
+
+<article class="card">
+    @if (Model.Claim == ItemClaimState.ClaimedByMe)
+    {
+        <span class="badge" data-variant="success">I've claimed this</span>
+    }
+    else if (Model.Claim == ItemClaimState.ClaimedByOther)
+    {
+        <span class="badge">already claimed</span>
+    }
+    <h3>
+        @Model.Item.Title
+        @if (Model.CreatedBy is not null)
+        {
+            <small>(for @Model.CreatedBy)</small>
+        }
+    </h3>
+    @if (!string.IsNullOrWhiteSpace(Model.Item.Description))
+    {
+        <u>More Info:</u>
+        <p>@Model.Item.Description</p>
+    }
+    @if (!string.IsNullOrWhiteSpace(Model.Item.ProductUrl))
+    {
+        <p><a href="@Model.Item.ProductUrl" target="_blank" rel="noopener noreferrer">Link to product page <img src="~/assets/open_link.png" alt="" width="16" height="16" /></a></p>
+    }
+    @if (showActions)
+    {
+        <footer class="flex justify-end gap-2 mt-4">
+            @if (Model.CanEdit)
+            {
+                <button type="button" class="outline" commandfor="editItemDialog-@Model.Item.Id" command="show-modal">Edit</button>
+            }
+            @if (Model.CanClaim && Model.Claim == ItemClaimState.None)
+            {
+                <form method="post" asp-page-handler="ClaimItem" asp-route-id="@Model.EventId" asp-route-itemId="@Model.Item.Id">
+                    <button type="submit">Claim Ownership</button>
+                </form>
+            }
+            else if (Model.CanUnclaim && Model.Claim == ItemClaimState.ClaimedByMe)
+            {
+                <form method="post" asp-page-handler="UnclaimItem" asp-route-id="@Model.EventId" asp-route-itemId="@Model.Item.Id">
+                    <input type="hidden" name="active_view" value="@Model.ActiveView" />
+                    <button type="submit" class="outline">Unclaim</button>
+                </form>
+            }
+        </footer>
+    }
+</article>
+
+@if (Model.CanEdit)
+{
+    <dialog id="editItemDialog-@Model.Item.Id" closedby="any">
+        <form method="post" asp-page-handler="EditItem" asp-route-id="@Model.EventId">
+            <input type="hidden" name="itemId" value="@Model.Item.Id" />
+            <input type="hidden" name="ownerUserId" value="@Model.OwnerUserId" />
+            <input type="hidden" name="active_view" value="@Model.ActiveView" />
+            <header><h3>Edit Wish List Item</h3></header>
+            <div>
+                <label data-field>
+                    Title
+                    <input name="EditInput.Title" value="@Model.Item.Title" required maxlength="200" />
+                </label>
+                <label data-field>
+                    Description
+                    <textarea name="EditInput.Description" maxlength="1000">@Model.Item.Description</textarea>
+                </label>
+                <label data-field>
+                    Product URL
+                    <input name="EditInput.ProductUrl" type="url" value="@Model.Item.ProductUrl" maxlength="500" />
+                </label>
+            </div>
+            <footer>
+                <button type="button" class="outline" commandfor="editItemDialog-@Model.Item.Id" command="close">Cancel</button>
+                <button type="submit">Save Changes</button>
+            </footer>
+        </form>
+    </dialog>
+}

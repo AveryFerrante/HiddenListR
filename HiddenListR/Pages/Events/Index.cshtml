@@ -1,0 +1,112 @@
+@page
+@model HiddenListR.Pages.Events.IndexModel
+@{
+    ViewData["Title"] = Model.CurrentUser?.IsAdmin() == true ? "Events" : "My Events";
+}
+
+@section Scripts {
+    <script src="~/js/events.js" asp-append-version="true"></script>
+}
+
+<h1>@ViewData["Title"]</h1>
+
+@Html.AntiForgeryToken()
+@if (Model.CurrentUser is null)
+{
+    <p>Not authenticated.</p>
+}
+else
+{
+    @if (Model.CurrentUser.IsAdmin())
+    {
+        <h2>Create Event</h2>
+        <form method="post" class="mb-4">
+            <div>
+                <label asp-for="Input.Title"></label>
+                <input asp-for="Input.Title" />
+                <span asp-validation-for="Input.Title"></span>
+            </div>
+            <div>
+                <label asp-for="Input.ExpireDateUtc">Expire Date (UTC)</label>
+                <input asp-for="Input.ExpireDateUtc" type="datetime-local" />
+            </div>
+            <button type="submit">Create Event</button>
+        </form>
+    }
+
+    @if (Model.Events.Count == 0)
+    {
+        <p>No events found.</p>
+    }
+    else
+    {
+        <div class="vstack gap-4">
+            @foreach (var ev in Model.Events)
+            {
+                var members = Model.EventMembers.GetValueOrDefault(ev.Id) ?? [];
+                <article class="card">
+                    <header class="flex justify-between gap-2">
+                        <h3>@ev.Title</h3>
+                        @if (Model.IsActive(ev))
+                        {
+                            <span class="badge" data-variant="success">Active</span>
+                        }
+                        else
+                        {
+                            <span class="badge">Expired</span>
+                        }
+                    </header>
+                    <div>
+                        <p><strong>Members</strong></p>
+                        @if (members.Count == 0)
+                        {
+                            <p>No members yet.</p>
+                        }
+                        else
+                        {
+                            <ul>
+                                @foreach (var member in members)
+                                {
+                                    <li>@($"{member.FirstName} {member.LastName}".Trim())</li>
+                                }
+                            </ul>
+                        }
+                    </div>
+                    <footer class="flex justify-end gap-2 mt-4">
+                        @if (Model.CurrentUser.IsAdmin())
+                        {
+                            <button type="button" class="outline" commandfor="manageUsersModal" command="show-modal" onclick="prepareManageUsers(@ev.Id, '@ev.Title.Replace("'", "\\'")')">Manage Users</button>
+                        }
+                        <a class="button" asp-page="/Events/Details" asp-route-id="@ev.Id">View Event Info</a>
+                    </footer>
+                </article>
+            }
+        </div>
+    }
+
+    @if (Model.CurrentUser.IsAdmin())
+    {
+        <dialog id="manageUsersModal" closedby="any">
+            <form method="dialog">
+                <header>
+                    <h3 id="manageUsersTitle">Manage Users</h3>
+                </header>
+                <div>
+                    <h4>Add User</h4>
+                    <label data-field for="addUserSelect">Select user</label>
+                    <div class="row">
+                        <select id="addUserSelect" class="col-10"></select>
+                        <button type="button" onclick="addUserToEvent()" class="col-2">Add</button>
+                    </div>
+                    <h4>Current Members</h4>
+                    <div id="membersList"></div>
+                    <div id="manageUsersMsg" class="text-danger"></div>
+                </div>
+                <footer>
+                    <button type="button" onclick="removeSelectedUsers()">Remove Selected</button>
+                    <button type="button" class="outline" commandfor="manageUsersModal" command="close">Close</button>
+                </footer>
+            </form>
+        </dialog>
+    }
+}

@@ -1,0 +1,20 @@
+FROM mcr.microsoft.com/dotnet/sdk:10.0
+WORKDIR /src
+
+RUN dotnet tool install --global dotnet-ef --version 10.*
+ENV PATH="$PATH:/root/.dotnet/tools"
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends sqlite3 \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY ["HiddenListR.slnx", "./"]
+COPY ["HiddenListR/HiddenListR.csproj", "HiddenListR/"]
+COPY ["HiddenListR.Domain/HiddenListR.Domain.csproj", "HiddenListR.Domain/"]
+RUN dotnet restore "HiddenListR/HiddenListR.csproj"
+
+COPY . .
+RUN sed -i 's/\r$//' /src/HiddenListR.Domain/Scripts/run-db-init.sh \
+    && chmod +x /src/HiddenListR.Domain/Scripts/run-db-init.sh
+
+ENTRYPOINT ["/src/HiddenListR.Domain/Scripts/run-db-init.sh"]

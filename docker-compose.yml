@@ -1,0 +1,30 @@
+services:
+  db-init:
+    build:
+      context: .
+      dockerfile: HiddenListR/Dockerfile.dbinit
+    environment:
+      - ConnectionStrings__DefaultConnection=Data Source=/app/data/hiddenlistr.db
+      - DB_PATH=/app/data/hiddenlistr.db
+    volumes:
+      - hiddenlistr-data:/app/data
+    restart: "no"
+
+  hiddenlistr:
+    build:
+      context: .
+      dockerfile: HiddenListR/Dockerfile
+    depends_on:
+      db-init:
+        condition: service_completed_successfully
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ConnectionStrings__DefaultConnection=Data Source=/app/data/hiddenlistr.db
+    volumes:
+      - hiddenlistr-data:/app/data
+
+volumes:
+  hiddenlistr-data:

@@ -1,0 +1,6 @@
+-- Example seed script. Scripts in this folder are executed by the db-init compose service on startup.
+-- Make scripts idempotent to avoid conflicts on repeated runs.
+-- Example:
+-- INSERT INTO Users (Id, FirstName, LastName, PhoneNumber, Role)
+-- SELECT '00000000-0000-0000-0000-000000000001', 'Admin', 'User', '5550000000', 1
+-- WHERE NOT EXISTS (SELECT 1 FROM Users WHERE PhoneNumber = '5550000000');
